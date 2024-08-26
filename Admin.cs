@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Assignment1
 {
-    class Doctor
+    class Admin
     {
         public int Id { get; set; }
         public string Password { get; set; }
@@ -15,7 +15,7 @@ namespace Assignment1
 
         //private PatientMapper mapper;
 
-        public Doctor(int id, string password, string name)
+        public Admin(int id, string password, string name)
         {
             Id = id;
             Password = password;

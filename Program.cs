@@ -1,5 +1,4 @@
 ﻿using Assignment1;
-using System;
 
 namespace HospitalSystem
 {
@@ -7,11 +6,19 @@ namespace HospitalSystem
     {
         static void Main(string[] args)
         {
+            // 启动应用程序
+            StartApplication();
+        }
+
+        public static void StartApplication()
+        {
+            // 启动登录
             Login();
         }
 
         public static void Login()
         {
+            Console.Clear(); // 清屏
             Console.WriteLine("\t\t\t ============================================================");
             Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
             Console.WriteLine("\t\t\t |                                                          |");
@@ -23,7 +30,6 @@ namespace HospitalSystem
             Console.Write("\n\t\t\t Enter ID: ");
             int id = int.Parse(Console.ReadLine());
 
-            // 输入密码
             Console.Write("\t\t\t Enter Password: ");
             string password = ReadPassword();
 
@@ -32,21 +38,35 @@ namespace HospitalSystem
             Console.WriteLine(message);
             if (isValid)
             {
-                Patient patient = mapper.GetPatientById(id); // 获取 Patient 对象
                 Console.WriteLine($"User type: {userType}");
                 if (userType == 1)
                 {
-                    PatientPage page = new PatientPage(patient); // 传递 Patient 对象
-                    page.patientMainPage();
+                    Patient patient = mapper.GetPatientById(id); // 需要用实际数据替换
+                    PatientPage page = new PatientPage(patient);
+                    page.patientMainPage(); // 启动病人菜单
                 }
                 else if (userType == 2)
                 {
+                    // 处理其他用户类型
+                    DoctorMapper doctorMapper = new DoctorMapper();
+                    Doctor doctor = doctorMapper.GetDoctorById(id);
+                    DoctorPage page = new DoctorPage(doctor);
+                    page.doctorMainPage();
                 }
                 else if (userType == 3)
                 {
+                    // 处理其他用户类型
+                    AdminMapper adminMapper = new AdminMapper();
+                    Admin admin = adminMapper.GetAdminById(id);
+                    AdminPage page = new AdminPage(admin);
+                    page.adminMainPage();
                 }
             }
-
+            else
+            {
+                // 登录失败，返回主程序或重新登录
+                StartApplication();
+            }
         }
 
         private static string ReadPassword()
@@ -58,7 +78,6 @@ namespace HospitalSystem
             {
                 key = Console.ReadKey(true);
 
-                // Ignore any key that's not a backspace or a valid character
                 if (!char.IsControl(key.KeyChar))
                 {
                     password += key.KeyChar;
@@ -70,7 +89,6 @@ namespace HospitalSystem
                     Console.Write("\b \b");
                 }
             }
-            // Continue until Enter is pressed
             while (key.Key != ConsoleKey.Enter);
 
             Console.WriteLine();
