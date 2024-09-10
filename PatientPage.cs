@@ -73,47 +73,160 @@ namespace Assignment1
 
         private void ListPatientDetails()
         {
-            Console.WriteLine("Patient Details:");
-            Console.WriteLine($"ID: {_patient.Id}");
-            Console.WriteLine($"Name: {_patient.Name}");
-            Console.WriteLine($"Password: {_patient.Password}");
-            Console.WriteLine("Press any key to return to the menu.");
-            Console.ReadKey();
+            PatientMapper patientMapper = new PatientMapper();
+            Patient patient = patientMapper.displayPatientDetails(_patient.Id);  // 传入当前患者的 ID
+
+            Console.Clear(); // 清屏，方便查看
+            Console.WriteLine("\t\t\t ============================================================");
+            Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
+            Console.WriteLine("\t\t\t |                                                          |");
+            Console.WriteLine("\t\t\t ------------------------------------------------------------");
+            Console.WriteLine("\t\t\t |                         My Details                       |");
+            Console.WriteLine("\t\t\t |                                                          |");
+            Console.WriteLine("\t\t\t ============================================================");
+
+            Console.WriteLine("\n");
+
+            Console.WriteLine($"{_patient.Name}'s Details");
+
+            if (patient != null)
+            {
+                // 输出病人的所有信息
+                Console.WriteLine($"Patient ID: {patient.Id}");
+                Console.WriteLine($"Full Name: {patient.Name}");
+                string fullAddress = $"{patient.StreetNumber} {patient.Street}, {patient.City}, {patient.State}";
+                Console.WriteLine($"Address: {fullAddress}");
+                Console.WriteLine($"Email: {patient.Email}");
+                Console.WriteLine($"Phone: {patient.Phone}");
+            }
+
+            Console.WriteLine("\nPress any key to return to menu...");
+            Console.ReadKey();  // 等待用户按键返回菜单
         }
 
         private void ListDoctorDetails()
         {
-            // 这里你可以实现获取医生详情的逻辑
-            Console.WriteLine("Doctor Details:");
-            // 假设有一个方法获取医生信息
-            Console.WriteLine("Doctor Name: Dr. Smith");
-            Console.WriteLine("Specialty: Cardiology");
-            Console.WriteLine("Contact: (123) 456-7890");
-            Console.WriteLine("Press any key to return to the menu.");
-            Console.ReadKey();
+            PatientMapper patientMapper = new PatientMapper();
+            DoctorMapper doctorMapper = new DoctorMapper();
+
+            List<int> doctorIds = patientMapper.GetDoctorIdsByPatientId(_patient.Id);
+
+            if (doctorIds.Count == 0)
+            {
+                Console.WriteLine("No doctors found for the patient.");
+                Console.ReadKey(); // 等待用户按键返回菜单
+                return;
+            }
+
+            List<Doctor> doctors = doctorMapper.GetDoctorsByIds(doctorIds);
+
+            if (doctors.Count == 0)
+            {
+                Console.WriteLine("No doctor details found.");
+            }
+            else
+            {
+                Console.WriteLine("Doctor Details:");
+                foreach (var doctor in doctors)
+                {
+                    Console.WriteLine(doctor.ToString()); // This assumes a ToString method in the Doctor class that formats the doctor's details
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return to menu...");
+            Console.ReadKey(); // 等待用户按键返回菜单
         }
 
         private void ListAllAppointments()
         {
-            // 这里你可以实现获取所有预约的逻辑
-            Console.WriteLine("All Appointments:");
-            // 假设有一个方法获取预约信息
-            Console.WriteLine("Appointment 1: 2024-08-25 10:00 AM with Dr. Smith");
-            Console.WriteLine("Appointment 2: 2024-08-30 02:00 PM with Dr. Jones");
-            Console.WriteLine("Press any key to return to the menu.");
-            Console.ReadKey();
+            PatientMapper patientMapper = new PatientMapper();
+            DoctorMapper doctorMapper = new DoctorMapper();
+
+            List<Appointment> patientAppointments = patientMapper.GetAppointmentsByPatientId(_patient.Id);
+
+            if (patientAppointments.Count == 0)
+            {
+                Console.WriteLine("No past appointments found.");
+            }
+            else
+            {
+                Console.WriteLine("Past Appointments:");
+                foreach (var appointment in patientAppointments)
+                {
+                    string patientName = patientMapper.GetPatientNameById(appointment.PatientId);
+                    string doctorName = doctorMapper.GetDoctorNameById(appointment.DoctorId);
+
+                    Console.WriteLine($"Appointment ID: {appointment.AppointmentId}");
+                    Console.WriteLine($"Patient Name: {patientName}");
+                    Console.WriteLine($"Doctor Name: {doctorName}");
+                    Console.WriteLine($"Illness Description: {appointment.IllnessDescription}");
+                    Console.WriteLine("-------------------------------------------------");
+                }
+            }
+
+            Console.WriteLine("\nPress any key to return to menu...");
+            Console.ReadKey(); // 等待用户按键返回菜单
         }
+
 
         private void BookAppointment()
         {
-            // 这里你可以实现预约的逻辑
-            Console.WriteLine("Booking an Appointment:");
-            Console.Write("Enter the date and time (e.g., 2024-08-30 02:00 PM): ");
-            string dateTime = Console.ReadLine();
-            // 假设有一个方法进行预约
-            Console.WriteLine($"Appointment booked for {dateTime}.");
-            Console.WriteLine("Press any key to return to the menu.");
-            Console.ReadKey();
+            // 获取 PatientMapper 实例
+            PatientMapper mapper = new PatientMapper();
+
+            // 从 appointment 文件中查找当前病人的预约信息
+            var existingAppointments = mapper.GetAppointmentsByPatientId(_patient.Id);
+
+            Doctor selectedDoctor;
+
+            if (existingAppointments.Count == 0)
+            {
+                // 如果病人之前没有预约过医生，列出所有医生
+                var doctors = mapper.GetAllDoctors();
+
+                if (doctors.Count == 0)
+                {
+                    Console.WriteLine("No doctors available.");
+                    return;
+                }
+
+                Console.WriteLine("Select a doctor by entering the number:");
+                for (int i = 0; i < doctors.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}. {doctors[i].ToString()}");
+                }
+
+                int selectedDoctorIndex = int.Parse(Console.ReadLine()) - 1;
+                selectedDoctor = doctors[selectedDoctorIndex];
+            }
+            else
+            {
+                // 如果病人已经有预约记录，直接获取之前绑定的医生
+                int doctorId = existingAppointments[0].DoctorId; // 假设一个病人只绑定一个医生
+                selectedDoctor = new DoctorMapper().GetDoctorById(doctorId);
+
+                if (selectedDoctor == null)
+                {
+                    Console.WriteLine("Associated doctor not found.");
+                    return;
+                }
+
+                Console.WriteLine($"You are currently associated with Dr. {selectedDoctor.Name}");
+            }
+
+            // 输入病症描述
+            Console.WriteLine("Enter a description of your illness:");
+            string illnessDescription = Console.ReadLine();
+
+            // 创建新的 Appointment 对象并保存到文件
+            Appointment appointment = new Appointment();
+            int nextAppointmentId = appointment.getNextAppointmentId();
+            appointment = new Appointment(nextAppointmentId, _patient.Id, selectedDoctor.Id, illnessDescription);
+            mapper.SaveAppointment(appointment);
+
+            Console.WriteLine("Appointment booked successfully!");
         }
+
+
     }
 }
