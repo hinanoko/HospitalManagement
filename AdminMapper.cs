@@ -1,220 +1,262 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assignment1
 {
-    class AdminMapper
+    class AdminMapper : BaseMapper
     {
-        private const string USER_FILE_NAME = "datatext.txt";
-        private const string APPOINTMENT_FILE_NAME = "appointment.txt";
-
-        private string GetUserFilePath(string fileName)
-        {
-            string executingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string projectDir = Directory.GetParent(executingDir).Parent.Parent.FullName;
-            return Path.Combine(projectDir, fileName);
-        }
-
         public Admin GetAdminById(int id)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
 
-            if (!File.Exists(filePath))
+            try
             {
-                throw new FileNotFoundException("User file not found.");
+                if (!File.Exists(filePath))
+                {
+                    throw new FileNotFoundException("User file not found.");
+                }
+
+                string[] lines = File.ReadAllLines(filePath);
+                var userLine = lines.FirstOrDefault(line =>
+                {
+                    string[] parts = line.Split(',');
+                    return parts.Length > 0 && int.TryParse(parts[0], out int existingId) && existingId == id;
+                });
+
+                if (userLine == null)
+                {
+                    return null;
+                }
+
+                string[] userParts = userLine.Split(',');
+                return new Admin(
+                    int.Parse(userParts[0]),
+                    userParts[1], // Password
+                    userParts[3]  // Name
+                );
             }
-
-            string[] lines = File.ReadAllLines(filePath);
-
-            var userLine = lines.FirstOrDefault(line =>
+            catch (Exception ex)
             {
-                string[] parts = line.Split(',');
-                return parts.Length > 0 && int.TryParse(parts[0], out int existingId) && existingId == id;
-            });
-
-            if (userLine == null)
-            {
-                return null;
+                Console.WriteLine($"Error fetching admin by ID: {ex.Message}");
+                throw;
             }
-
-            string[] userParts = userLine.Split(',');
-            return new Admin(
-                int.Parse(userParts[0]),
-                userParts[1],
-                userParts[3]
-            );
         }
+
         public List<Doctor> ListAllDoctors()
         {
-            string filePath = GetUserFilePath(USER_FILE_NAME);
-
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException("User file not found.");
-            }
-
-            string[] lines = File.ReadAllLines(filePath);
-            List<Doctor> doctors = new List<Doctor>();
-
-            foreach (var line in lines)
-            {
-                string[] parts = line.Split(',');
-
-                if (parts.Length > 0 && parts[0].StartsWith("2"))
-                {
-                    Doctor doctor = new Doctor
-                    {
-                        Id = int.Parse(parts[0]),
-                        Name = parts[3], // Assuming the name is in the fourth position
-                        Email = parts[4], // Assuming the email is in the fifth position
-                        Phone = parts[5], // Assuming the phone is in the sixth position
-                        // Additional fields can be added as needed
-                        Street = parts[6],
-                        City = parts[7],
-                        State = parts[8],
-                    };
-                    doctors.Add(doctor);
-                }
-            }
-
-            return doctors;
+            return ListAllUsers<Doctor>("2");
         }
-
 
         public List<Patient> ListAllPatients()
         {
+            return ListAllUsers<Patient>("1");
+        }
+
+        private List<T> ListAllUsers<T>(string idPrefix) where T : new()
+        {
             string filePath = GetUserFilePath(USER_FILE_NAME);
 
-            if (!File.Exists(filePath))
+            try
             {
-                throw new FileNotFoundException("User file not found.");
-            }
-
-            string[] lines = File.ReadAllLines(filePath);
-            List<Patient> patients = new List<Patient>();
-
-            foreach (var line in lines)
-            {
-                string[] parts = line.Split(',');
-
-                if (parts.Length > 0 && parts[0].StartsWith("1"))
+                if (!File.Exists(filePath))
                 {
-                    Patient patient = new Patient
-                    {
-                        Id = int.Parse(parts[0]),
-                        Name = parts[3], // Assuming the name is in the fourth position
-                        Email = parts[4], // Assuming the email is in the fifth position
-                        Phone = parts[5], // Assuming the phone is in the sixth position
-                        // Additional fields can be added as needed
-                        Street = parts[6],
-                        City = parts[7],
-                        State = parts[8],
-                    };
-                    patients.Add(patient);
+                    throw new FileNotFoundException("User file not found.");
                 }
-            }
 
-            return patients;
+                string[] lines = File.ReadAllLines(filePath);
+                List<T> users = new List<T>();
+
+                foreach (var line in lines)
+                {
+                    string[] parts = line.Split(',');
+
+                    if (parts.Length > 0 && parts[0].StartsWith(idPrefix))
+                    {
+                        T user = new T();
+                        typeof(T).GetProperty("Id")?.SetValue(user, int.Parse(parts[0]));
+                        typeof(T).GetProperty("Name")?.SetValue(user, parts[3]);
+                        typeof(T).GetProperty("Email")?.SetValue(user, parts[4]);
+                        typeof(T).GetProperty("Phone")?.SetValue(user, parts[5]);
+
+                        if (typeof(T) == typeof(Doctor) || typeof(T) == typeof(Patient))
+                        {
+                            typeof(T).GetProperty("Street")?.SetValue(user, parts[6]);
+                            typeof(T).GetProperty("City")?.SetValue(user, parts[7]);
+                            typeof(T).GetProperty("State")?.SetValue(user, parts[8]);
+                        }
+
+                        users.Add(user);
+                    }
+                }
+
+                return users;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error listing users: {ex.Message}");
+                throw;
+            }
         }
 
         public Doctor GetDoctorById(int doctorId)
         {
-            string filePath = GetUserFilePath(USER_FILE_NAME);
-
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException("User file not found.");
-            }
-
-            string[] lines = File.ReadAllLines(filePath);
-
-            foreach (var line in lines)
-            {
-                string[] parts = line.Split(',');
-
-                if (parts.Length > 0 && int.TryParse(parts[0], out int id) && id == doctorId && parts[0].StartsWith("2"))
-                {
-                    return new Doctor
-                    {
-                        Id = id,
-                        Name = parts[3], // Assuming the name is in the fourth position
-                        Email = parts[4], // Assuming the email is in the fifth position
-                        Phone = parts[5], // Assuming the phone is in the sixth position
-                        // Add other fields as necessary
-                        Street = parts[6],
-                        City = parts[7],
-                        State = parts[8],
-                    };
-                }
-            }
-
-            return null;
+            return GetUserById<Doctor>(doctorId, "2");
         }
 
         public Patient GetPatientById(int patientId)
         {
+            return GetUserById<Patient>(patientId, "1");
+        }
+
+        private T GetUserById<T>(int id, string idPrefix) where T : new()
+        {
             string filePath = GetUserFilePath(USER_FILE_NAME);
 
-            if (!File.Exists(filePath))
+            try
             {
-                throw new FileNotFoundException("User file not found.");
-            }
-
-            string[] lines = File.ReadAllLines(filePath);
-
-            foreach (var line in lines)
-            {
-                string[] parts = line.Split(',');
-
-                if (parts.Length > 0 && int.TryParse(parts[0], out int id) && id == patientId && parts[0].StartsWith("1"))
+                if (!File.Exists(filePath))
                 {
-                    return new Patient
-                    {
-                        Id = id,
-                        Name = parts[3], // Assuming the name is in the fourth position
-                        Email = parts[4], // Assuming the email is in the fifth position
-                        Phone = parts[5], // Assuming the phone is in the sixth position
-                        // Add other fields as necessary
-                    };
+                    throw new FileNotFoundException("User file not found.");
                 }
-            }
 
-            return null;
+                string[] lines = File.ReadAllLines(filePath);
+
+                foreach (var line in lines)
+                {
+                    string[] parts = line.Split(',');
+
+                    if (parts.Length > 0 && int.TryParse(parts[0], out int userId) && userId == id && parts[0].StartsWith(idPrefix))
+                    {
+                        T user = new T();
+                        typeof(T).GetProperty("Id")?.SetValue(user, userId);
+                        typeof(T).GetProperty("Name")?.SetValue(user, parts[3]);
+                        typeof(T).GetProperty("Email")?.SetValue(user, parts[4]);
+                        typeof(T).GetProperty("Phone")?.SetValue(user, parts[5]);
+
+                        if (typeof(T) == typeof(Doctor) || typeof(T) == typeof(Patient))
+                        {
+                            typeof(T).GetProperty("Street")?.SetValue(user, parts[6]);
+                            typeof(T).GetProperty("City")?.SetValue(user, parts[7]);
+                            typeof(T).GetProperty("State")?.SetValue(user, parts[8]);
+                        }
+
+                        return user;
+                    }
+                }
+
+                return default;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching user by ID: {ex.Message}");
+                throw;
+            }
         }
 
         public List<Appointment> GetAppointmentsByPatientId(int patientId)
         {
             string filePath = GetUserFilePath(APPOINTMENT_FILE_NAME);
 
-            if (!File.Exists(filePath))
+            try
             {
-                throw new FileNotFoundException("Appointment file not found.");
-            }
-
-            List<Appointment> appointments = new List<Appointment>();
-            string[] lines = File.ReadAllLines(filePath);
-
-            foreach (var line in lines)
-            {
-                string[] parts = line.Split(',');
-
-                if (parts.Length > 0 && int.TryParse(parts[1], out int pid) && pid == patientId)
+                if (!File.Exists(filePath))
                 {
-                    appointments.Add(new Appointment
-                    {
-                        AppointmentId = int.Parse(parts[0]),
-                        PatientId = pid,
-                        DoctorId = int.Parse(parts[2]),
-                        IllnessDescription = parts[3],
-                    });
+                    throw new FileNotFoundException("Appointment file not found.");
                 }
-            }
 
-            return appointments;
+                List<Appointment> appointments = new List<Appointment>();
+                string[] lines = File.ReadAllLines(filePath);
+
+                foreach (var line in lines)
+                {
+                    string[] parts = line.Split(',');
+
+                    if (parts.Length > 0 && int.TryParse(parts[1], out int pid) && pid == patientId)
+                    {
+                        appointments.Add(new Appointment
+                        {
+                            AppointmentId = int.Parse(parts[0]),
+                            PatientId = pid,
+                            DoctorId = int.Parse(parts[2]),
+                            IllnessDescription = parts[3],
+                        });
+                    }
+                }
+
+                return appointments;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching appointments for patient {patientId}: {ex.Message}");
+                throw;
+            }
         }
+
+        public string GetDoctorNameByPatientId(int patientId)
+        {
+            string appointmentFilePath = GetUserFilePath(APPOINTMENT_FILE_NAME);
+            string userFilePath = GetUserFilePath(USER_FILE_NAME);
+
+            try
+            {
+                // 1. 查找病人ID对应的医生ID
+                if (!File.Exists(appointmentFilePath))
+                {
+                    throw new FileNotFoundException("Appointment file not found.");
+                }
+
+                string[] appointmentLines = File.ReadAllLines(appointmentFilePath);
+                int? doctorId = null;
+
+                foreach (var line in appointmentLines)
+                {
+                    string[] parts = line.Split(',');
+
+                    if (parts.Length >= 3 && int.TryParse(parts[1], out int foundPatientId) && foundPatientId == patientId)
+                    {
+                        if (int.TryParse(parts[2], out int foundDoctorId))
+                        {
+                            doctorId = foundDoctorId; // 找到对应的医生ID
+                            break;
+                        }
+                    }
+                }
+
+                // 如果没有找到医生ID，返回提示
+                if (!doctorId.HasValue)
+                {
+                    return "No doctor found for the given patient ID.";
+                }
+
+                // 2. 根据医生ID在用户文件中查找对应的医生名字
+                if (!File.Exists(userFilePath))
+                {
+                    throw new FileNotFoundException("User file not found.");
+                }
+
+                string[] userLines = File.ReadAllLines(userFilePath);
+
+                foreach (var line in userLines)
+                {
+                    string[] parts = line.Split(',');
+
+                    if (parts.Length >= 4 && int.TryParse(parts[0], out int foundDoctorId) && foundDoctorId == doctorId)
+                    {
+                        return parts[3]; // 返回医生名字 (假设名字是第4个字段)
+                    }
+                }
+
+                return "Doctor name not found.";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching doctor name for patient {patientId}: {ex.Message}");
+                throw;
+            }
+        }
+
     }
 }

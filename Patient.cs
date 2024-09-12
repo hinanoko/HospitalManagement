@@ -10,46 +10,23 @@ using System.Xml.Linq;
 
 namespace Assignment1
 {
-    class Patient
+    class Patient : Person
     {
-        public int Id { get; set; }
-        public string Password { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string StreetNumber { get; set; }
-        public string Street { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-
-
-
-
-
         private PatientMapper mapper;
 
-        public Patient()
+        public Patient() : base()
         {
-            // Initialize mapper here
             mapper = new PatientMapper();
         }
 
         public Patient(string password, string name, string email, string phone, string streetNumber, string street, string city, string state)
+            : base(password, name, email, phone, streetNumber, street, city, state)
         {
             mapper = new PatientMapper();
-
             Id = generateUniqueID();
-            Password = password;
-            Name = name;
-            Email = email;
-            Phone = phone;
-            StreetNumber = streetNumber;
-            Street = street;
-            City = city;
-            State = state;
         }
 
-        public int generateUniqueID()
+        private int generateUniqueID()
         {
             Random rnd = new Random();
             int newId;
@@ -62,11 +39,10 @@ namespace Assignment1
             return newId;
         }
 
+        // 重写 ToString 方法
         public override string ToString()
         {
-            return $"ID: {Id}, Name: {Name}, Email: {Email}, Phone: {Phone}, Address: {StreetNumber} {Street}, {City}, {State}";
+            return base.ToString();
         }
     }
-
-    
 }

@@ -22,7 +22,9 @@ namespace Assignment1
 
             while (!exit)
             {
-                Console.Clear(); // 清屏，方便查看
+                try
+                {
+                    Console.Clear(); // 清屏，方便查看
                 Console.WriteLine("\t\t\t ============================================================");
                 Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
                 Console.WriteLine("\t\t\t |                                                          |");
@@ -68,12 +70,19 @@ namespace Assignment1
                         Console.WriteLine("Invalid choice, please try again.");
                         break;
                 }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+                }
             }
         }
 
         private void ListPatientDetails()
         {
-            PatientMapper patientMapper = new PatientMapper();
+            try
+            {
+                PatientMapper patientMapper = new PatientMapper();
             Patient patient = patientMapper.displayPatientDetails(_patient.Id);  // 传入当前患者的 ID
 
             Console.Clear(); // 清屏，方便查看
@@ -102,11 +111,36 @@ namespace Assignment1
 
             Console.WriteLine("\nPress any key to return to menu...");
             Console.ReadKey();  // 等待用户按键返回菜单
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving patient details: {ex.Message}");
+                Console.ReadKey(); // 等待用户按键返回菜单
+            }
         }
 
         private void ListDoctorDetails()
         {
-            PatientMapper patientMapper = new PatientMapper();
+            try
+            {
+                Console.Clear(); // 清屏，方便查看
+                Console.WriteLine("\t\t\t ============================================================");
+                Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ------------------------------------------------------------");
+                Console.WriteLine("\t\t\t |                         My Doctor                        |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ============================================================");
+
+                Console.WriteLine("\n");
+
+                Console.WriteLine("Your doctor:");
+                Console.WriteLine("\n");
+
+                Console.WriteLine("Name                | Email Address          | Phone       | Address");
+                Console.WriteLine("----------------------------------------------------------------------------------------------");
+
+                PatientMapper patientMapper = new PatientMapper();
             DoctorMapper doctorMapper = new DoctorMapper();
 
             List<int> doctorIds = patientMapper.GetDoctorIdsByPatientId(_patient.Id);
@@ -126,20 +160,45 @@ namespace Assignment1
             }
             else
             {
-                Console.WriteLine("Doctor Details:");
                 foreach (var doctor in doctors)
                 {
-                    Console.WriteLine(doctor.ToString()); // This assumes a ToString method in the Doctor class that formats the doctor's details
-                }
+                        string fullAddress = $"{doctor.StreetNumber} {doctor.Street}, {doctor.City}, {doctor.State}";
+
+                        // 格式化输出医生信息
+                        Console.WriteLine($"{doctor.Name,-19} | {doctor.Email,-22} | {doctor.Phone,-11} | {fullAddress,-35}");
+                    }
             }
 
             Console.WriteLine("\nPress any key to return to menu...");
             Console.ReadKey(); // 等待用户按键返回菜单
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving doctor details: {ex.Message}");
+                Console.ReadKey(); // 等待用户按键返回菜单
+            }
         }
 
         private void ListAllAppointments()
         {
-            PatientMapper patientMapper = new PatientMapper();
+            try
+            {
+
+                Console.Clear(); // 清屏，方便查看
+                Console.WriteLine("\t\t\t ============================================================");
+                Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ------------------------------------------------------------");
+                Console.WriteLine("\t\t\t |                      My Appointments                     |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ============================================================");
+
+                Console.WriteLine("\n");
+
+                Console.WriteLine($"Appointments for {_patient.Name}");
+                Console.WriteLine("\n");
+
+                PatientMapper patientMapper = new PatientMapper();
             DoctorMapper doctorMapper = new DoctorMapper();
 
             List<Appointment> patientAppointments = patientMapper.GetAppointmentsByPatientId(_patient.Id);
@@ -150,29 +209,44 @@ namespace Assignment1
             }
             else
             {
-                Console.WriteLine("Past Appointments:");
-                foreach (var appointment in patientAppointments)
+                    Console.WriteLine("Doctor                | Patient             | Description");
+                    Console.WriteLine("----------------------------------------------------------------------------------------------");
+                    foreach (var appointment in patientAppointments)
                 {
                     string patientName = patientMapper.GetPatientNameById(appointment.PatientId);
                     string doctorName = doctorMapper.GetDoctorNameById(appointment.DoctorId);
 
-                    Console.WriteLine($"Appointment ID: {appointment.AppointmentId}");
-                    Console.WriteLine($"Patient Name: {patientName}");
-                    Console.WriteLine($"Doctor Name: {doctorName}");
-                    Console.WriteLine($"Illness Description: {appointment.IllnessDescription}");
-                    Console.WriteLine("-------------------------------------------------");
+                        Console.WriteLine($"{doctorName,-21} | {patientName,-19} | {appointment.IllnessDescription,-11} ");
                 }
             }
 
             Console.WriteLine("\nPress any key to return to menu...");
             Console.ReadKey(); // 等待用户按键返回菜单
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving appointments: {ex.Message}");
+                Console.ReadKey(); // 等待用户按键返回菜单
+            }
         }
 
 
         private void BookAppointment()
         {
-            // 获取 PatientMapper 实例
-            PatientMapper mapper = new PatientMapper();
+            try
+            {
+                Console.Clear(); // 清屏，方便查看
+                Console.WriteLine("\t\t\t ============================================================");
+                Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ------------------------------------------------------------");
+                Console.WriteLine("\t\t\t |                      Book Appointment                    |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ============================================================");
+
+                Console.WriteLine("\n");
+                // 获取 PatientMapper 实例
+                PatientMapper mapper = new PatientMapper();
 
             // 从 appointment 文件中查找当前病人的预约信息
             var existingAppointments = mapper.GetAppointmentsByPatientId(_patient.Id);
@@ -190,14 +264,17 @@ namespace Assignment1
                     return;
                 }
 
-                Console.WriteLine("Select a doctor by entering the number:");
+                Console.WriteLine("You are not registered with any doctor! Please choose which doctor you would like to register with");
                 for (int i = 0; i < doctors.Count; i++)
                 {
-                    Console.WriteLine($"{i + 1}. {doctors[i].ToString()}");
+                        string fullAddress = $"{doctors[i].StreetNumber} {doctors[i].Street}, {doctors[i].City}, {doctors[i].State}";
+                        Console.WriteLine($"{i + 1} {doctors[i].Name} | {doctors[i].Email} | {doctors[i].Phone} | {fullAddress} ");
                 }
-
+                    Console.WriteLine("Please choose a doctor: ");
                 int selectedDoctorIndex = int.Parse(Console.ReadLine()) - 1;
                 selectedDoctor = doctors[selectedDoctorIndex];
+                    Console.WriteLine($"You are book a new appointment with {selectedDoctor.Name}");
+
             }
             else
             {
@@ -211,11 +288,11 @@ namespace Assignment1
                     return;
                 }
 
-                Console.WriteLine($"You are currently associated with Dr. {selectedDoctor.Name}");
+                Console.WriteLine($"You are booking a new appointment with Dr. {selectedDoctor.Name}");
             }
 
             // 输入病症描述
-            Console.WriteLine("Enter a description of your illness:");
+            Console.WriteLine("Description of the oppintment:");
             string illnessDescription = Console.ReadLine();
 
             // 创建新的 Appointment 对象并保存到文件
@@ -224,7 +301,15 @@ namespace Assignment1
             appointment = new Appointment(nextAppointmentId, _patient.Id, selectedDoctor.Id, illnessDescription);
             mapper.SaveAppointment(appointment);
 
-            Console.WriteLine("Appointment booked successfully!");
+                Console.WriteLine("The appointment has been booked successfully");
+
+                    Console.WriteLine("\nPress any key to return to menu...");
+                Console.ReadKey(); // 等待用户按键返回菜单
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error booking appointment: {ex.Message}");
+            }
         }
 
 

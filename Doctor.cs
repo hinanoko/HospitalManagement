@@ -8,43 +8,23 @@ using System.Threading.Tasks;
 
 namespace Assignment1
 {
-    class Doctor
+
+    class Doctor : Person
     {
-        public int Id { get; set; }
-        public string Password { get; set; }
-        public string Name { get; set; }
+        private DoctorMapper mapper;
 
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string StreetNumber { get; set; }
-        public string Street { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-
-
-        //private PatientMapper mapper;
-        public Doctor()
+        public Doctor() : base()
         {
-            // Initialize mapper here
             mapper = new DoctorMapper();
         }
 
         public Doctor(string password, string name, string email, string phone, string streetNumber, string street, string city, string state)
+            : base(password, name, email, phone, streetNumber, street, city, state)
         {
             mapper = new DoctorMapper();
-
             Id = generateUniqueID();
-            Password = password;
-            Name = name;
-            Email = email;
-            Phone = phone;
-            StreetNumber = streetNumber;
-            Street = street;
-            City = city;
-            State = state;
         }
 
-        private DoctorMapper mapper;
         private int generateUniqueID()
         {
             Random rnd = new Random();
@@ -58,10 +38,10 @@ namespace Assignment1
             return newId;
         }
 
+        // 重写 ToString 方法
         public override string ToString()
         {
-            return $"ID: {Id}, Name: {Name}, Email: {Email}, Phone: {Phone}, Address: {StreetNumber} {Street}, {City}, {State}";
+            return base.ToString();
         }
-
     }
 }

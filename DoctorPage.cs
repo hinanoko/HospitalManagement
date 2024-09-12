@@ -16,14 +16,18 @@ namespace Assignment1
             _doctor = doctor;
         }
 
+        public delegate void CheckPatientDelegate(int patientId);
+
         public void doctorMainPage()
         {
             bool exit = false;
 
             while (!exit)
             {
+                try
+                {
 
-                Console.Clear(); // 清屏，方便查看
+                    Console.Clear(); // 清屏，方便查看
                 Console.WriteLine("\t\t\t ============================================================");
                 Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
                 Console.WriteLine("\t\t\t |                                                          |");
@@ -73,13 +77,20 @@ namespace Assignment1
                         Console.WriteLine("Invalid choice, please try again.");
                         break;
                 }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+                }
             }
         
         }
 
         private void ListDoctorDetails()
         {
-            DoctorMapper doctorMapper = new DoctorMapper();
+            try
+            {
+                DoctorMapper doctorMapper = new DoctorMapper();
             Doctor doctor = doctorMapper.displayDoctorDetails(_doctor.Id);  // 传入当前患者的 ID
 
             Console.Clear(); // 清屏，方便查看
@@ -93,27 +104,46 @@ namespace Assignment1
 
             Console.WriteLine("\n");
 
-            Console.WriteLine($"{_doctor.Name}'s Details");
+            //Console.WriteLine($"{_doctor.Name}'s Details");
 
             if (doctor != null)
             {
-                // 输出病人的所有信息
-                Console.WriteLine($"Patient ID: {doctor.Id}");
-                Console.WriteLine($"Full Name: {doctor.Name}");
-                string fullAddress = $"{doctor.StreetNumber} {doctor.Street}, {doctor.City}, {doctor.State}";
-                Console.WriteLine($"Address: {fullAddress}");
-                Console.WriteLine($"Email: {doctor.Email}");
-                Console.WriteLine($"Phone: {doctor.Phone}");
+                    Console.WriteLine("Name                | Email Address          | Phone       | Address");
+                    Console.WriteLine("----------------------------------------------------------------------------------------------");
+                    string fullAddress = $"{doctor.StreetNumber} {doctor.Street}, {doctor.City}, {doctor.State}";
+
+                    // 格式化输出医生信息
+                    Console.WriteLine($"{doctor.Name,-19} | {doctor.Email,-22} | {doctor.Phone,-11} | {fullAddress,-35}");
+                    // 输出病人的所有信息
             }
 
             Console.WriteLine("\nPress any key to return to menu...");
             Console.ReadKey();  // 等待用户按键返回菜单
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving doctor details: {ex.Message}");
+            }
         }
 
         private void ListPatients()
         {
-            DoctorMapper doctorMapper = new DoctorMapper();
+            try
+            {
+                Console.Clear(); // 清屏，方便查看
+                Console.WriteLine("\t\t\t ============================================================");
+                Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ------------------------------------------------------------");
+                Console.WriteLine("\t\t\t |                         My Patients                      |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ============================================================");
+
+                Console.WriteLine("\n");
+                DoctorMapper doctorMapper = new DoctorMapper();
             List<Patient> patients = doctorMapper.GetPatientsByDoctorId(_doctor.Id);
+                Console.WriteLine($"Patients assigned to {_doctor.Name}");
+                Console.WriteLine("\n");
 
             if (patients.Count == 0)
             {
@@ -122,21 +152,41 @@ namespace Assignment1
             else
             {
                 string doctorName = doctorMapper.GetDoctorNameById(_doctor.Id);
+                    Console.WriteLine("Patient             |Doctor                | Email Address          | Phone      | Address");
+                    Console.WriteLine("----------------------------------------------------------------------------------------------");
 
-                // 输出病人信息并显示医生名字
-                foreach (var patient in patients)
+                    // 输出病人信息并显示医生名字
+                    foreach (var patient in patients)
                 {
-                    Console.WriteLine($"Doctor: {doctorName}, {patient.ToString()}");
+                        string fullAddress = $"{patient.StreetNumber} {patient.Street}, {patient.City}, {patient.State}";
+                        Console.WriteLine($"{patient.Name,-19} | {doctorName,-20} | {patient.Email, -22} |{patient.Phone,-11} | {fullAddress,-35}");
                 }
             }
 
             Console.WriteLine("\nPress any key to return to menu...");
             Console.ReadKey();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving patients: {ex.Message}");
+            }
         }
 
         public void ListAppointments()
         {
-            DoctorMapper doctorMapper = new DoctorMapper();
+            try
+            {
+                Console.Clear(); // 清屏，方便查看
+                Console.WriteLine("\t\t\t ============================================================");
+                Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ------------------------------------------------------------");
+                Console.WriteLine("\t\t\t |                      All Appointments                    |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ============================================================");
+
+                Console.WriteLine("\n");
+                DoctorMapper doctorMapper = new DoctorMapper();
             PatientMapper patientMapper = new PatientMapper(); 
             List<Appointment> appointments = doctorMapper.GetAppointmentsByDoctorId(_doctor.Id);
 
@@ -148,55 +198,105 @@ namespace Assignment1
             {
                 Console.WriteLine("Appointments involving the doctor:");
 
-                foreach (var appointment in appointments)
+                    Console.WriteLine("Doctor              |Patient               | Description");
+                    Console.WriteLine("----------------------------------------------------------------------------------------------");
+
+                    foreach (var appointment in appointments)
                 {
                     string patientName = patientMapper.GetPatientNameById(appointment.PatientId);
                     string doctorName = doctorMapper.GetDoctorNameById(appointment.DoctorId);
 
-                    Console.WriteLine($"Appointment ID: {appointment.AppointmentId}");
-                    Console.WriteLine($"Patient Name: {patientName}");
-                    Console.WriteLine($"Doctor Name: {doctorName}");
-                    Console.WriteLine($"Illness Description: {appointment.IllnessDescription}");
-                    Console.WriteLine(); // Adding a blank line between appointments for readability
+                        Console.WriteLine($"{doctorName,-19} | {patientName,-20} | {appointment.IllnessDescription,-22} ");
                 }
             }
 
             Console.WriteLine("\nPress any key to return to menu...");
             Console.ReadKey();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving appointments: {ex.Message}");
+            }
         }
 
 
         public void CheckParticularPatient()
         {
-            Console.Write("Enter the ID of the patient to check: ");
-
-            // 读取用户输入
-            int input = int.Parse(Console.ReadLine());
-            //string input = Console.ReadLine();
-            PatientMapper patientMapper = new PatientMapper();
-
-            Patient newPatient = patientMapper.GetPatientById(input);
-
-            if (newPatient != null)
+            try
             {
-                // 输出病人的所有信息
-                Console.WriteLine($"Patient ID: {newPatient.Id}");
-                Console.WriteLine($"Full Name: {newPatient.Name}");
-                string fullAddress = $"{newPatient.StreetNumber} {newPatient.Street}, {newPatient.City}, {newPatient.State}";
-                Console.WriteLine($"Address: {fullAddress}");
-                Console.WriteLine($"Email: {newPatient.Email}");
-                Console.WriteLine($"Phone: {newPatient.Phone}");
+                Console.Clear(); // 清屏，方便查看
+                Console.WriteLine("\t\t\t ============================================================");
+                Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ------------------------------------------------------------");
+                Console.WriteLine("\t\t\t |                   Check Patient Details                  |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ============================================================");
+
+                Console.WriteLine("\n");
+
+                Console.Write("Enter the ID of the patient to check: ");
+                if (int.TryParse(Console.ReadLine(), out int input))
+                {
+                    CheckPatientDelegate checkPatient = delegate (int patientId)
+                    {
+                        try
+                        {
+                            PatientMapper patientMapper = new PatientMapper();
+                            Patient newPatient = patientMapper.GetPatientById(patientId);
+
+                            if (newPatient != null)
+                            {
+                                Console.WriteLine("Patient             |Doctor                | Email Address          | Phone      | Address");
+                                Console.WriteLine("----------------------------------------------------------------------------------------------");
+
+                                string fullAddress = $"{newPatient.StreetNumber} {newPatient.Street}, {newPatient.City}, {newPatient.State}";
+                                Console.WriteLine($"{newPatient.Name,-19} | {_doctor.Name,-20} | {newPatient.Email,-22} |{newPatient.Phone,-11} | {fullAddress,-35}");
+
+                            }
+                            else
+                            {
+                                Console.WriteLine("Patient not found.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error retrieving patient: {ex.Message}");
+                        }
+                    };
+
+                    checkPatient(input);
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid patient ID.");
+                }
+
+                Console.ReadKey();
             }
-
-
-            Console.ReadKey();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking patient: {ex.Message}");
+            }
         }
+
 
         public void ListAppointmentsWithPatient()
         {
+            try
+            {
+                Console.Clear(); // 清屏，方便查看
+                Console.WriteLine("\t\t\t ============================================================");
+                Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ------------------------------------------------------------");
+                Console.WriteLine("\t\t\t |                     Appointments With                    |");
+                Console.WriteLine("\t\t\t |                                                          |");
+                Console.WriteLine("\t\t\t ============================================================");
 
+                Console.WriteLine("\n");
 
-            Console.Write("Enter the ID of the patient: ");
+                Console.Write("Enter the ID of the patient you would like to view appointments for: ");
             string patientInput = Console.ReadLine();
 
             if ( int.TryParse(patientInput, out int patientId))
@@ -213,10 +313,14 @@ namespace Assignment1
 
                 if (appointments.Count > 0)
                 {
-                    Console.WriteLine($"Appointments between Dr. {doctorName} and Patient {patientName}:");
-                    foreach (var appointment in appointments)
+                        //Console.WriteLine($"Appointments between Dr. {doctorName} and Patient {patientName}:");
+                        Console.WriteLine("Doctor              |Patient               | Description");
+                        Console.WriteLine("----------------------------------------------------------------------------------------------");
+                        foreach (var appointment in appointments)
                     {
-                        Console.WriteLine($"Appointment ID: {appointment.AppointmentId}, Illness: {appointment.IllnessDescription}");
+                            
+                            Console.WriteLine($"{doctorName,-19} | {patientName,-20} | {appointment.IllnessDescription,-22} ");
+                            //Console.WriteLine($"Appointment ID: {appointment.AppointmentId}, Illness: {appointment.IllnessDescription}");
                     }
                 }
                 else
@@ -231,8 +335,11 @@ namespace Assignment1
 
             Console.WriteLine("Press any key to return to menu...");
             Console.ReadKey();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving appointments with patient: {ex.Message}");
+            }
         }
-
-
     }
 }

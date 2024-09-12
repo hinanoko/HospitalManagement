@@ -5,18 +5,8 @@ using System.Reflection;
 
 namespace Assignment1
 {
-    class PatientMapper
+    class PatientMapper : BaseMapper
     {
-        private const string USER_FILE_NAME = "datatext.txt";
-        private const string APPOINTMENT_FILE_NAME = "appointment.txt";
-
-        private string GetUserFilePath(string fileName)
-        {
-            string executingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string projectDir = Directory.GetParent(executingDir).Parent.Parent.FullName;
-            return Path.Combine(projectDir, fileName);
-        }
-
         public (bool isValid, int userType, string message) ValidateUser(int userid, string password)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
@@ -30,7 +20,6 @@ namespace Assignment1
 
                 string[] lines = File.ReadAllLines(filePath);
 
-                // 首先查找用户名是否存在
                 var userLine = lines.FirstOrDefault(line =>
                 {
                     string[] parts = line.Split(',');
@@ -42,7 +31,6 @@ namespace Assignment1
                     return (false, -1, "User does not exist.");
                 }
 
-                // 用户存在，验证密码
                 string[] userParts = userLine.Split(',');
                 if (userParts[1] == password)
                 {
@@ -60,28 +48,14 @@ namespace Assignment1
             }
         }
 
-        public bool IdExistsInFile(int id)
-        {
-            string filePath = GetUserFilePath(USER_FILE_NAME);
-
-            if (!File.Exists(filePath))
-            {
-                return false;
-            }
-
-            string[] lines = File.ReadAllLines(filePath);
-            return lines.Any(line =>
-            {
-                string[] parts = line.Split(',');
-                return parts.Length > 0 && int.TryParse(parts[0], out int existingId) && existingId == id;
-            });
-        }
-
+        // GetPatientById 使用 BaseMapper 中的 GetUserFilePath 方法
         public Patient GetPatientById(int id)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
+            try
+            {
 
-            if (!File.Exists(filePath))
+                if (!File.Exists(filePath))
             {
                 throw new FileNotFoundException("User file not found.");
             }
@@ -113,18 +87,26 @@ namespace Assignment1
             {
                 Id = int.Parse(userParts[0]) // 设置 ID
             };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while getting patient by ID: {ex.Message}");
+                return null;
+            }
         }
 
+        // 继承自 BaseMapper 的 IdExistsInFile 方法，不需要重新实现
+        // public bool IdExistsInFile(int id) { ... } 这个方法不用写了
+
+        // SavePatient 使用 BaseMapper 中的 GetUserFilePath 方法
         public void SavePatient(Patient patient)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
 
-            try
+                try
             {
-                // 生成一行文本来表示Patient对象
                 string patientData = $"{patient.Id},{patient.Password},1,{patient.Name},{patient.Email},{patient.Phone},{patient.StreetNumber},{patient.Street},{patient.City},{patient.State}";
 
-                // 将Patient数据写入文件
                 using (StreamWriter writer = new StreamWriter(filePath, append: true))
                 {
                     writer.WriteLine();
@@ -141,7 +123,10 @@ namespace Assignment1
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
 
-            if (!File.Exists(filePath))
+            try
+            {
+
+                if (!File.Exists(filePath))
             {
                 Console.WriteLine("User file not found.");
                 return null;
@@ -174,6 +159,12 @@ namespace Assignment1
                 City = userParts[8],
                 State = userParts[9]
             };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while displaying patient details: {ex.Message}");
+                return null;
+            }
         }
 
         public List<Doctor> GetAllDoctors()
@@ -181,7 +172,10 @@ namespace Assignment1
             string filePath = GetUserFilePath(USER_FILE_NAME);
             List<Doctor> doctors = new List<Doctor>();
 
-            if (!File.Exists(filePath))
+            try
+            {
+
+                if (!File.Exists(filePath))
             {
                 Console.WriteLine("Doctor file not found.");
                 return doctors;
@@ -196,19 +190,24 @@ namespace Assignment1
                 {
                     int id = int.Parse(parts[0]);
                     string password = parts[1];
-                    string name = parts[2];
-                    string email = parts[3];
-                    string phone = parts[4];
-                    string streetNumber = parts[5];
-                    string street = parts[6];
-                    string city = parts[7];
-                    string state = parts[8];
+                    string name = parts[3];
+                    string email = parts[4];
+                    string phone = parts[5];
+                    string streetNumber = parts[6];
+                    string street = parts[7];
+                    string city = parts[8];
+                    string state = parts[9];
 
                     Doctor doctor = new Doctor(password, name, email, phone, streetNumber, street, city, state);
                     doctor.Id = id; // 直接赋值ID，而不是生成新的ID
-                    Console.WriteLine(doctor);  
+                    //Console.WriteLine(doctor);  
                     doctors.Add(doctor);
                 }
+            }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while retrieving all doctors: {ex.Message}");
             }
 
             return doctors;
@@ -240,6 +239,9 @@ namespace Assignment1
 
                 string filePath = GetUserFilePath(APPOINTMENT_FILE_NAME);
 
+            try
+            {
+
                 if (!File.Exists(filePath))
                 {
                     Console.WriteLine("No appointments file found.");
@@ -261,8 +263,13 @@ namespace Assignment1
                         appointments.Add(new Appointment(appointmentId, patientId, doctorId, illnessDescription));
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while retrieving appointments: {ex.Message}");
+            }
 
-                return appointments;
+            return appointments;
             }
 
 
@@ -270,7 +277,10 @@ namespace Assignment1
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
 
-            if (!File.Exists(filePath))
+            try
+            {
+
+                if (!File.Exists(filePath))
             {
                 Console.WriteLine("Patient file not found.");
                 return null;
@@ -290,6 +300,12 @@ namespace Assignment1
 
             Console.WriteLine("Patient not found.");
             return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while retrieving patient name by ID: {ex.Message}");
+                return null;
+            }
         }
 
 
@@ -297,7 +313,10 @@ namespace Assignment1
         {
             string filePath = GetUserFilePath(APPOINTMENT_FILE_NAME);
 
-            if (!File.Exists(filePath))
+            try
+            {
+
+                if (!File.Exists(filePath))
             {
                 Console.WriteLine("Appointment file not found.");
                 return new List<int>();
@@ -320,6 +339,12 @@ namespace Assignment1
             }
 
             return doctorIds.ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while retrieving doctor IDs by patient ID: {ex.Message}");
+                return new List<int>();
+            }
         }
 
     }
