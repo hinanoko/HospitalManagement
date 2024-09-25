@@ -6,13 +6,13 @@ namespace HospitalSystem
     {
         static void Main(string[] args)
         {
-            // 启动应用程序
+            // Start the application
             StartApplication();
         }
 
         public static void StartApplication()
         {
-            // 启动登录
+            // Start the login process
             Login();
         }
 
@@ -20,7 +20,7 @@ namespace HospitalSystem
 
         public static void Login()
         {
-            Console.Clear(); // 清屏
+            Console.Clear(); // Clear the console
             Console.WriteLine("\t\t\t ============================================================");
             Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
             Console.WriteLine("\t\t\t |                                                          |");
@@ -32,27 +32,27 @@ namespace HospitalSystem
             Console.Write("\n\t\t\t Enter ID: ");
             string inputId = Console.ReadLine();
 
-            // 检查输入的ID是否是数字
+            // Check if the entered ID is a number
             if (!inputId.IsNumeric())
             {
-                Console.WriteLine("\nID 必须是一个数字！按任意键重新输入...");
-                Console.ReadKey(); // 等待用户按键
-                StartApplication(); // 重新启动应用程序
-                return; // 结束当前方法，避免继续执行
+                Console.WriteLine("\nID must be a number! Press any key to re-enter...");
+                Console.ReadKey(); // Wait for user input
+                StartApplication(); // Restart the application
+                return; // End the current method to avoid further execution
             }
 
-            // 检查输入的ID是否为5位数字
+            // Check if the entered ID is a 5-digit number
             if (inputId.Length != 5)
             {
-                Console.WriteLine("\nID 格式不正确！ID 必须是五位数字。按任意键重新输入...");
-                Console.ReadKey(); // 等待用户按键
-                StartApplication(); // 重新启动应用程序
-                return; // 结束当前方法
+                Console.WriteLine("\nInvalid ID format! ID must be five digits. Press any key to re-enter...");
+                Console.ReadKey(); // Wait for user input
+                StartApplication(); // Restart the application
+                return; // End the current method
             }
 
             try
             {
-                // 使用 long.Parse 来处理较大的数字
+                // Use long.Parse to handle larger numbers
                 int id = int.Parse(inputId);
 
                 Console.Write("\t\t\t Enter Password: ");
@@ -66,13 +66,13 @@ namespace HospitalSystem
                     Console.WriteLine($"User type: {userType}");
                     if (userType == 1)
                     {
-                        Patient patient = mapper.GetPatientById(id); // 需要用实际数据替换
+                        Patient patient = mapper.GetPatientById(id); // Replace with actual data
                         PatientPage page = new PatientPage(patient);
-                        page.patientMainPage(); // 启动病人菜单
+                        page.patientMainPage(); // Start the patient menu
                     }
                     else if (userType == 2)
                     {
-                        // 处理其他用户类型
+                        // Handle other user types
                         DoctorMapper doctorMapper = new DoctorMapper();
                         Doctor doctor = doctorMapper.GetDoctorById(id);
                         DoctorPage page = new DoctorPage(doctor);
@@ -80,13 +80,13 @@ namespace HospitalSystem
                     }
                     else if (userType == 3)
                     {
-                        // 处理其他用户类型
+                        // Handle other user types
                         AdminMapper adminMapper = new AdminMapper();
                         Admin admin = adminMapper.GetAdminById(id);
                         AdminPage page = new AdminPage(admin);
                         page.adminMainPage();
                     }
-                    else if(userType == 4)
+                    else if (userType == 4)
                     {
                         ReceptionistMapper receptionistMapper = new ReceptionistMapper();
                         Receptionist receptionist = receptionistMapper.GetReceptionistById(id);
@@ -94,32 +94,31 @@ namespace HospitalSystem
                         page.receptionistMainPage();
                     }
 
-                    // 在完成某些操作后强制垃圾回收
+                    // Force garbage collection after completing certain operations
                     Console.WriteLine("Forcing Garbage Collection...");
-                    GC.Collect(); // 手动触发垃圾回收
-                    GC.WaitForPendingFinalizers(); // 确保所有终结器都完成
+                    GC.Collect(); // Manually trigger garbage collection
+                    GC.WaitForPendingFinalizers(); // Ensure all finalizers are completed
                     Console.WriteLine("Garbage Collection completed.");
                 }
                 else
                 {
-                    // 登录失败，返回主程序或重新登录
+                    // Login failed, return to the main program or retry login
                     StartApplication();
                 }
             }
             catch (FormatException)
             {
-                Console.WriteLine("\nID 输入无效！按任意键重新输入...");
-                Console.ReadKey(); // 等待用户按键
-                StartApplication(); // 重新启动应用程序
+                Console.WriteLine("\nInvalid ID input! Press any key to re-enter...");
+                Console.ReadKey(); // Wait for user input
+                StartApplication(); // Restart the application
             }
             catch (OverflowException)
             {
-                Console.WriteLine("\nID 超出范围！请输入有效的数字。按任意键重新输入...");
-                Console.ReadKey(); // 等待用户按键
-                StartApplication(); // 重新启动应用程序
+                Console.WriteLine("\nID exceeds range! Please enter a valid number. Press any key to re-enter...");
+                Console.ReadKey(); // Wait for user input
+                StartApplication(); // Restart the application
             }
         }
-
 
         private static string ReadPassword()
         {
@@ -150,11 +149,10 @@ namespace HospitalSystem
 
     public static class StringExtensions
     {
-        // 扩展 string 类，添加一个方法来检查字符串是否为数字
+        // Extend the string class with a method to check if the string is numeric
         public static bool IsNumeric(this string str)
         {
             return int.TryParse(str, out _);
         }
     }
-
 }

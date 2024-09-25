@@ -14,34 +14,40 @@ namespace Assignment1
     {
         private PatientMapper mapper;
 
+        // Default constructor that initializes the mapper
         public Patient() : base()
         {
             mapper = new PatientMapper();
         }
 
+        // Parameterized constructor that initializes the patient details and generates a unique ID
         public Patient(string password, string name, string email, string phone, string streetNumber, string street, string city, string state)
             : base(password, name, email, phone, streetNumber, street, city, state)
         {
             mapper = new PatientMapper();
-            Id = generateUniqueID();
+            Id = generateUniqueID(); // Generate a unique ID for each patient
         }
 
+        // Method to generate a unique patient ID
         private int generateUniqueID()
         {
             Random rnd = new Random();
             int newId;
+
+            // Generate a random 5-digit number starting with 1, and ensure it doesn't already exist in the file
             do
             {
-                // 生成以1开头的5位数字
+                // Generate a 5-digit number starting from 10000 to 19999
                 newId = rnd.Next(10000, 20000);
-            } while (mapper.IdExistsInFile(newId));
+            } while (mapper.IdExistsInFile(newId)); // Check if the ID already exists
 
-            return newId;
+            return newId; // Return the unique ID
         }
 
-        // 重写 ToString 方法
+        // Override the ToString method to return patient details as a string
         public override string ToString()
         {
+            // Use the base ToString method to include the basic person details
             return base.ToString();
         }
     }

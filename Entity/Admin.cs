@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Assignment1
 {
     class Admin : Person
     {
-        // 继承了 Person 类的属性: Id, Password, Name 等
+        // Inherits properties from the Person class: Id, Password, Name, etc.
 
         public Admin(int id, string password, string name)
             : base(password, name, "", "", "", "", "", "")
@@ -19,11 +18,10 @@ namespace Assignment1
             Name = name;
         }
 
-        // 你可以选择重写 Person 类中的方法，例如 ToString
+        // You can choose to override methods from the Person class, such as ToString
         public override string ToString()
         {
             return $"Admin ID: {Id}, Name: {Name}";
         }
     }
 }
-

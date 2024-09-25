@@ -8,34 +8,42 @@ namespace Assignment1
 {
     class AdminMapper : BaseMapper
     {
+        // Method to get an admin by ID from a file
         public Admin GetAdminById(int id)
         {
+            // Get the file path of the user data file
             string filePath = GetUserFilePath(USER_FILE_NAME);
 
             try
             {
+                // Check if the file exists
                 if (!File.Exists(filePath))
                 {
                     throw new FileNotFoundException("User file not found.");
                 }
 
+                // Read all lines from the file
                 string[] lines = File.ReadAllLines(filePath);
+
+                // Find the specific line that matches the given admin ID
                 var userLine = lines.FirstOrDefault(line =>
                 {
                     string[] parts = line.Split(',');
                     return parts.Length > 0 && int.TryParse(parts[0], out int existingId) && existingId == id;
                 });
 
+                // If no matching line is found, return null
                 if (userLine == null)
                 {
                     return null;
                 }
 
+                // Split the user data and create a new Admin object
                 string[] userParts = userLine.Split(',');
                 return new Admin(
-                    int.Parse(userParts[0]),
-                    userParts[1], // Password
-                    userParts[3]  // Name
+                    int.Parse(userParts[0]),  // Admin ID
+                    userParts[1],             // Password
+                    userParts[3]              // Name
                 );
             }
             catch (Exception ex)
@@ -45,16 +53,19 @@ namespace Assignment1
             }
         }
 
+        // Method to list all doctors from the user data file
         public List<Doctor> ListAllDoctors()
         {
-            return ListAllUsers<Doctor>("2");
+            return ListAllUsers<Doctor>("2");  // '2' is the ID prefix for doctors
         }
 
+        // Method to list all patients from the user data file
         public List<Patient> ListAllPatients()
         {
-            return ListAllUsers<Patient>("1");
+            return ListAllUsers<Patient>("1");  // '1' is the ID prefix for patients
         }
 
+        // Generic method to list all users based on a prefix (doctors or patients)
         private List<T> ListAllUsers<T>(string idPrefix) where T : new()
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
@@ -83,9 +94,10 @@ namespace Assignment1
 
                         if (typeof(T) == typeof(Doctor) || typeof(T) == typeof(Patient))
                         {
-                            typeof(T).GetProperty("Street")?.SetValue(user, parts[6]);
-                            typeof(T).GetProperty("City")?.SetValue(user, parts[7]);
-                            typeof(T).GetProperty("State")?.SetValue(user, parts[8]);
+                            typeof(T).GetProperty("StreetNumber")?.SetValue(user, parts[6]);
+                            typeof(T).GetProperty("Street")?.SetValue(user, parts[7]);
+                            typeof(T).GetProperty("City")?.SetValue(user, parts[8]);
+                            typeof(T).GetProperty("State")?.SetValue(user, parts[9]);
                         }
 
                         users.Add(user);
@@ -101,16 +113,19 @@ namespace Assignment1
             }
         }
 
+        // Method to get a doctor by their ID
         public Doctor GetDoctorById(int doctorId)
         {
             return GetUserById<Doctor>(doctorId, "2");
         }
 
+        // Method to get a patient by their ID
         public Patient GetPatientById(int patientId)
         {
             return GetUserById<Patient>(patientId, "1");
         }
 
+        // Generic method to fetch user by ID (can be a doctor or patient)
         private T GetUserById<T>(int id, string idPrefix) where T : new()
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
@@ -138,9 +153,10 @@ namespace Assignment1
 
                         if (typeof(T) == typeof(Doctor) || typeof(T) == typeof(Patient))
                         {
-                            typeof(T).GetProperty("Street")?.SetValue(user, parts[6]);
-                            typeof(T).GetProperty("City")?.SetValue(user, parts[7]);
-                            typeof(T).GetProperty("State")?.SetValue(user, parts[8]);
+                            typeof(T).GetProperty("StreetNumber")?.SetValue(user, parts[6]);
+                            typeof(T).GetProperty("Street")?.SetValue(user, parts[7]);
+                            typeof(T).GetProperty("City")?.SetValue(user, parts[8]);
+                            typeof(T).GetProperty("State")?.SetValue(user, parts[9]);
                         }
 
                         return user;
@@ -156,6 +172,7 @@ namespace Assignment1
             }
         }
 
+        // Method to get a list of appointments for a given patient ID
         public List<Appointment> GetAppointmentsByPatientId(int patientId)
         {
             string filePath = GetUserFilePath(APPOINTMENT_FILE_NAME);
@@ -195,6 +212,7 @@ namespace Assignment1
             }
         }
 
+        // Method to fetch the name of the doctor based on a given patient ID
         public string GetDoctorNameByPatientId(int patientId)
         {
             string appointmentFilePath = GetUserFilePath(APPOINTMENT_FILE_NAME);
@@ -202,7 +220,7 @@ namespace Assignment1
 
             try
             {
-                // 1. 查找病人ID对应的医生ID
+                // 1. Find the doctor ID associated with the given patient ID
                 if (!File.Exists(appointmentFilePath))
                 {
                     throw new FileNotFoundException("Appointment file not found.");
@@ -219,19 +237,19 @@ namespace Assignment1
                     {
                         if (int.TryParse(parts[2], out int foundDoctorId))
                         {
-                            doctorId = foundDoctorId; // 找到对应的医生ID
+                            doctorId = foundDoctorId; // Doctor ID found
                             break;
                         }
                     }
                 }
 
-                // 如果没有找到医生ID，返回提示
+                // If no doctor ID was found, return a message
                 if (!doctorId.HasValue)
                 {
                     return "No doctor found for the given patient ID.";
                 }
 
-                // 2. 根据医生ID在用户文件中查找对应的医生名字
+                // 2. Fetch the doctor's name based on the doctor ID from the user file
                 if (!File.Exists(userFilePath))
                 {
                     throw new FileNotFoundException("User file not found.");
@@ -245,7 +263,7 @@ namespace Assignment1
 
                     if (parts.Length >= 4 && int.TryParse(parts[0], out int foundDoctorId) && foundDoctorId == doctorId)
                     {
-                        return parts[3]; // 返回医生名字 (假设名字是第4个字段)
+                        return parts[3]; // Return the doctor's name (assuming it's in the 4th column)
                     }
                 }
 
@@ -257,6 +275,5 @@ namespace Assignment1
                 throw;
             }
         }
-
     }
 }

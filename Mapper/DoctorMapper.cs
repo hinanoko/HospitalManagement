@@ -5,8 +5,10 @@ using System.Linq;
 
 namespace Assignment1
 {
+    // DoctorMapper class handles the retrieval and storage of Doctor data
     class DoctorMapper : BaseMapper
     {
+        // Retrieves a Doctor by their unique ID
         public Doctor GetDoctorById(int id)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
@@ -20,6 +22,7 @@ namespace Assignment1
 
                 string[] lines = File.ReadAllLines(filePath);
 
+                // Find the first line that matches the ID
                 var userLine = lines.FirstOrDefault(line =>
                 {
                     string[] parts = line.Split(',');
@@ -31,19 +34,20 @@ namespace Assignment1
                     throw new Exception("Doctor not found.");
                 }
 
+                // Parse the doctor data
                 string[] userParts = userLine.Split(',');
                 return new Doctor(
                    userParts[1], // Password
-                    userParts[3], // Name
-                    userParts[4], // Email
-                    userParts[5], // Phone
-                    userParts[6], // StreetNumber
-                    userParts[7], // Street
-                    userParts[8], // City
-                    userParts[9]  // State
+                   userParts[3], // Name
+                   userParts[4], // Email
+                   userParts[5], // Phone
+                   userParts[6], // StreetNumber
+                   userParts[7], // Street
+                   userParts[8], // City
+                   userParts[9]  // State
                 )
                 {
-                    Id = int.Parse(userParts[0]) // 设置 ID
+                    Id = int.Parse(userParts[0]) // Set the doctor ID
                 };
             }
             catch (Exception ex)
@@ -53,22 +57,23 @@ namespace Assignment1
             }
         }
 
+        // Overrides BaseMapper method to check if an ID already exists in the file
         public override bool IdExistsInFile(int id)
         {
-            // 重用 BaseMapper 中的 IdExistsInFile
             return base.IdExistsInFile(id);
         }
 
-        public void SaveDoctor(Doctor doctor)
+        // Saves doctor information to the file
+        public int SaveDoctor(Doctor doctor)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
 
             try
             {
-                // 生成一行文本来表示Doctor对象
+                // Create a string representation of the doctor object to save in the file
                 string doctorData = $"{doctor.Id},{doctor.Password},2,{doctor.Name},{doctor.Email},{doctor.Phone},{doctor.StreetNumber},{doctor.Street},{doctor.City},{doctor.State}";
 
-                // 将Doctor数据写入文件
+                // Append the doctor's data to the file
                 using (StreamWriter writer = new StreamWriter(filePath, append: true))
                 {
                     writer.WriteLine();
@@ -79,8 +84,10 @@ namespace Assignment1
             {
                 Console.WriteLine($"An error occurred while saving the doctor: {ex.Message}");
             }
+            return doctor.Id;
         }
 
+        // Retrieves the doctor's name by their unique ID
         public string GetDoctorNameById(int doctorId)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
@@ -94,13 +101,14 @@ namespace Assignment1
 
                 string[] lines = File.ReadAllLines(filePath);
 
+                // Loop through lines to find a matching doctor ID
                 foreach (var line in lines)
                 {
                     string[] parts = line.Split(',');
 
                     if (parts.Length > 1 && int.TryParse(parts[0], out int currentDoctorId) && currentDoctorId == doctorId)
                     {
-                        return parts[3]; // Assuming the name is in the second position
+                        return parts[3]; // Name is stored at index 3
                     }
                 }
 
@@ -113,6 +121,7 @@ namespace Assignment1
             }
         }
 
+        // Retrieves a list of doctors based on a list of IDs
         public List<Doctor> GetDoctorsByIds(List<int> doctorIds)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
@@ -127,6 +136,7 @@ namespace Assignment1
                 string[] lines = File.ReadAllLines(filePath);
                 List<Doctor> doctors = new List<Doctor>();
 
+                // Loop through lines to find matching doctors based on IDs
                 foreach (var line in lines)
                 {
                     string[] parts = line.Split(',');
@@ -159,10 +169,11 @@ namespace Assignment1
             }
         }
 
+        // Retrieves a list of patients that are associated with a particular doctor based on the doctor's ID
         public List<Patient> GetPatientsByDoctorId(int doctorId)
         {
             List<Patient> patients = new List<Patient>();
-            HashSet<int> addedPatientIds = new HashSet<int>(); // 用于存储已添加的病人ID
+            HashSet<int> addedPatientIds = new HashSet<int>(); // Keeps track of patient IDs that are already added
             string appointmentFilePath = GetUserFilePath(APPOINTMENT_FILE_NAME);
 
             try
@@ -174,6 +185,7 @@ namespace Assignment1
 
                 string[] appointmentLines = File.ReadAllLines(appointmentFilePath);
 
+                // Loop through appointments to find patients associated with the doctor
                 foreach (var line in appointmentLines)
                 {
                     string[] parts = line.Split(',');
@@ -181,14 +193,14 @@ namespace Assignment1
                     if (parts.Length >= 3 && int.TryParse(parts[2], out int foundDoctorId) && foundDoctorId == doctorId)
                     {
                         int patientId = int.Parse(parts[1]);
-                        // 检查病人ID是否已经添加过
+                        // Ensure that the patient is not added twice
                         if (!addedPatientIds.Contains(patientId))
                         {
                             Patient patient = GetPatientById(patientId);
                             if (patient != null)
                             {
                                 patients.Add(patient);
-                                addedPatientIds.Add(patientId); // 添加病人ID到HashSet中，防止重复添加
+                                addedPatientIds.Add(patientId);
                             }
                         }
                     }
@@ -202,7 +214,7 @@ namespace Assignment1
             return patients;
         }
 
-
+        // Retrieves a list of appointments based on the doctor's ID
         public List<Appointment> GetAppointmentsByDoctorId(int doctorId)
         {
             List<Appointment> appointments = new List<Appointment>();
@@ -217,6 +229,7 @@ namespace Assignment1
 
                 string[] lines = File.ReadAllLines(filePath);
 
+                // Loop through lines to find appointments associated with the doctor
                 foreach (var line in lines)
                 {
                     string[] parts = line.Split(',');
@@ -242,6 +255,7 @@ namespace Assignment1
             return appointments;
         }
 
+        // Displays the list of appointments for a particular doctor
         public void ListAppointmentsByDoctorId(int doctorId)
         {
             List<Appointment> appointments = GetAppointmentsByDoctorId(doctorId);
@@ -263,6 +277,7 @@ namespace Assignment1
             Console.ReadKey();
         }
 
+        // Displays details of a doctor by ID
         public Doctor displayDoctorDetails(int id)
         {
             string filePath = GetUserFilePath(USER_FILE_NAME);
@@ -276,6 +291,7 @@ namespace Assignment1
 
                 string[] lines = File.ReadAllLines(filePath);
 
+                // Find the doctor line matching the ID
                 var userLine = lines.FirstOrDefault(line =>
                 {
                     string[] parts = line.Split(',');
@@ -287,6 +303,7 @@ namespace Assignment1
                     throw new Exception("Doctor not found.");
                 }
 
+                // Parse the doctor details
                 string[] userParts = userLine.Split(',');
 
                 return new Doctor
@@ -308,6 +325,7 @@ namespace Assignment1
             }
         }
 
+        // Helper method to retrieve a patient by their ID
         private Patient GetPatientById(int patientId)
         {
             string patientFilePath = GetUserFilePath(USER_FILE_NAME);
@@ -321,6 +339,7 @@ namespace Assignment1
 
                 string[] patientLines = File.ReadAllLines(patientFilePath);
 
+                // Loop through lines to find the matching patient
                 foreach (var line in patientLines)
                 {
                     string[] parts = line.Split(',');
@@ -349,6 +368,7 @@ namespace Assignment1
             return null;
         }
 
+        // Retrieves appointments for a specific doctor and patient combination
         public List<Appointment> GetAppointmentsByDoctorAndPatientId(int doctorId, int patientId)
         {
             List<Appointment> appointments = new List<Appointment>();
@@ -363,6 +383,7 @@ namespace Assignment1
 
                 string[] lines = File.ReadAllLines(filePath);
 
+                // Loop through lines to find matching doctor and patient appointments
                 foreach (var line in lines)
                 {
                     string[] parts = line.Split(',');

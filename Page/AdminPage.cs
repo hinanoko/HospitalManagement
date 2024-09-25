@@ -21,7 +21,7 @@ namespace Assignment1
         {
             bool exit = false;
 
-            // 定义一个匿名方法来处理不同的功能
+            // Define an anonymous method to handle different functionalities
             Action<string> processChoice = delegate (string choice)
             {
                 switch (choice)
@@ -45,12 +45,12 @@ namespace Assignment1
                         registerPatient();
                         break;
                     case "7":
-                        exit = true; // 退出到登录界面
-                        Console.Clear(); // 清屏
-                        Program.StartApplication(); // 重新启动登录界面
+                        exit = true; // Logout to login screen
+                        Console.Clear(); // Clear the screen
+                        Program.StartApplication(); // Restart login interface
                         break;
                     case "8":
-                        Environment.Exit(0); // 退出系统
+                        Environment.Exit(0); // Exit the system
                         break;
                     default:
                         Console.WriteLine("Invalid choice, please try again.");
@@ -60,7 +60,7 @@ namespace Assignment1
 
             while (!exit)
             {
-                Console.Clear(); // 清屏，方便查看
+                Console.Clear(); // Clear the screen for better visibility
                 Console.WriteLine("\t\t\t ============================================================");
                 Console.WriteLine("\t\t\t |             DOTNET Hospital Management System            |");
                 Console.WriteLine("\t\t\t |                                                          |");
@@ -79,10 +79,10 @@ namespace Assignment1
                 Console.WriteLine("7. Logout");
                 Console.WriteLine("8. Exit");
 
-                // 处理用户输入
+                // Process user input
                 string choice = Console.ReadLine();
 
-                // 使用匿名方法来处理用户的选择
+                // Use the anonymous method to handle user choice
                 processChoice(choice);
             }
         }
@@ -128,16 +128,18 @@ namespace Assignment1
                 Console.Write("Enter Password: ");
                 string password = Console.ReadLine();
 
-                // 创建新的 Patient 对象
+                // Create a new Patient object
                 Patient newPatient = new Patient(password, $"{firstName} {lastName}", email, phone, streetNumber, street, city, state);
 
                 PatientMapper mapper = new PatientMapper();
-                mapper.SavePatient(newPatient);
+                int nowId = mapper.SavePatient(newPatient);
 
                 Console.WriteLine("Patient registered successfully! Press any key to return to the menu.");
+                Console.WriteLine($"Now your ID is: {nowId}");
                 Console.ReadKey(); // Wait for the user to press a key
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Console.WriteLine($"Error registering patient: {ex.Message}");
             }
         }
@@ -183,13 +185,14 @@ namespace Assignment1
                 Console.Write("Enter Password: ");
                 string password = Console.ReadLine();
 
-                // 创建新的 Patient 对象
+                // Create a new Doctor object
                 Doctor newDoctor = new Doctor(password, $"{firstName} {lastName}", email, phone, streetNumber, street, city, state);
 
                 DoctorMapper mapper = new DoctorMapper();
-                mapper.SaveDoctor(newDoctor);
+                int nowId = mapper.SaveDoctor(newDoctor);
 
                 Console.WriteLine("Doctor registered successfully! Press any key to return to the menu.");
+                Console.WriteLine($"Now your ID is: {nowId}");
                 Console.ReadKey(); // Wait for the user to press a key
             }
             catch (Exception ex) { Console.WriteLine(ex.Message); }
@@ -226,7 +229,7 @@ namespace Assignment1
                     {
                         string fullAddress = $"{doctor.StreetNumber} {doctor.Street}, {doctor.City}, {doctor.State}";
 
-                        // 格式化输出医生信息
+                        // Format output for doctor information
                         Console.WriteLine($"{doctor.Name,-19} | {doctor.Email,-22} | {doctor.Phone,-11} | {fullAddress,-35}");
                     }
                 }
@@ -240,7 +243,6 @@ namespace Assignment1
             }
         }
 
-        // Other methods like adminMainPage, registerDoctor, etc.
         public void ListAllPatients()
         {
             try
@@ -269,14 +271,14 @@ namespace Assignment1
                     Console.WriteLine("----------------------------------------------------------------------------------------------");
                     foreach (var patient in patients)
                     {
-
                         string fullAddress = $"{patient.StreetNumber} {patient.Street}, {patient.City}, {patient.State}";
                         Console.WriteLine($"{patient.Name,-19} | {adminMapper.GetDoctorNameByPatientId(patient.Id),-20} | {patient.Email,-22} |{patient.Phone,-11} | {fullAddress,-35}");
                     }
                 }
                 Console.WriteLine("\nPress any key to return to menu...");
                 Console.ReadKey();
-            } catch (Exception ex) { Console.WriteLine(ex.Message); }
+            }
+            catch (Exception ex) { Console.WriteLine(ex.Message); }
         }
 
         public void CheckDoctorDetails()
@@ -295,17 +297,17 @@ namespace Assignment1
                 Console.WriteLine("\t\t\t ============================================================");
                 Console.WriteLine("Please enter the ID of the doctor whose details you are checking. Or press 'n' to return to the menu");
 
-                // 另起一行输入ID
+                // Input ID on a new line
                 string input = Console.ReadLine();
 
-                // 检查是否输入的是 'n'
+                // Check if 'n' was entered
                 if (input.ToLower() == "n")
                 {
                     Console.WriteLine("Returning to menu...");
-                    return; // 返回到菜单
+                    return; // Return to the menu
                 }
 
-                // 检查输入的是否是数字ID
+                // Check if the input is a numeric ID
                 if (int.TryParse(input, out int doctorId))
                 {
                     Doctor doctor = adminMapper.GetDoctorById(doctorId);
@@ -317,7 +319,7 @@ namespace Assignment1
                         Console.WriteLine("----------------------------------------------------------------------------------------------");
                         string fullAddress = $"{doctor.StreetNumber} {doctor.Street}, {doctor.City}, {doctor.State}";
 
-                        // 格式化输出医生信息
+                        // Format output for doctor information
                         Console.WriteLine($"{doctor.Name,-19} | {doctor.Email,-22} | {doctor.Phone,-11} | {fullAddress,-35}");
                     }
                     else
@@ -339,8 +341,6 @@ namespace Assignment1
             }
         }
 
-
-
         public void CheckPatientDetails()
         {
             try
@@ -357,14 +357,14 @@ namespace Assignment1
                 Console.WriteLine("\t\t\t ============================================================");
                 Console.WriteLine("Please enter the ID of the patient whose details you are checking. Or press 'n' to return to the menu");
 
-                // 另起一行输入ID
+                // Input ID on a new line
                 string input = Console.ReadLine();
 
-                // 检查是否输入的是 'n'
+                // Check if 'n' was entered
                 if (input.ToLower() == "n")
                 {
                     Console.WriteLine("Returning to menu...");
-                    return; // 返回到菜单
+                    return; // Return to the menu
                 }
 
                 if (int.TryParse(input, out int patientId))
